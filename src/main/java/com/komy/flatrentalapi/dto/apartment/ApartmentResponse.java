@@ -1,4 +1,4 @@
-package com.komy.flatrentalapi.dto;
+package com.komy.flatrentalapi.dto.apartment;
 
 import java.time.Instant;
 

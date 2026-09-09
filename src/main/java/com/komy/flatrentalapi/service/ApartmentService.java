@@ -1,9 +1,9 @@
 package com.komy.flatrentalapi.service;
 
-import com.komy.flatrentalapi.dto.ApartmentCreateRequest;
-import com.komy.flatrentalapi.dto.ApartmentMapper;
-import com.komy.flatrentalapi.dto.ApartmentResponse;
-import com.komy.flatrentalapi.dto.ApartmentUpdateRequest;
+import com.komy.flatrentalapi.dto.apartment.ApartmentCreateRequest;
+import com.komy.flatrentalapi.dto.apartment.ApartmentMapper;
+import com.komy.flatrentalapi.dto.apartment.ApartmentResponse;
+import com.komy.flatrentalapi.dto.apartment.ApartmentUpdateRequest;
 import com.komy.flatrentalapi.entity.User;
 import com.komy.flatrentalapi.entity.enums.ApartmentStatus;
 import com.komy.flatrentalapi.exception.ResourceNotFoundException;

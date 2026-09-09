@@ -1,4 +1,4 @@
-package com.komy.flatrentalapi.dto;
+package com.komy.flatrentalapi.dto.apartment;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

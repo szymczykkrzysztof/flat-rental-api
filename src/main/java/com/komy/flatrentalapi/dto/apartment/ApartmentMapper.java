@@ -1,4 +1,4 @@
-package com.komy.flatrentalapi.dto;
+package com.komy.flatrentalapi.dto.apartment;
 
 import com.komy.flatrentalapi.entity.Apartment;
 import org.mapstruct.*;

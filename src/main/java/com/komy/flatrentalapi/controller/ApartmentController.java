@@ -1,8 +1,8 @@
 package com.komy.flatrentalapi.controller;
 
-import com.komy.flatrentalapi.dto.ApartmentCreateRequest;
-import com.komy.flatrentalapi.dto.ApartmentResponse;
-import com.komy.flatrentalapi.dto.ApartmentUpdateRequest;
+import com.komy.flatrentalapi.dto.apartment.ApartmentCreateRequest;
+import com.komy.flatrentalapi.dto.apartment.ApartmentResponse;
+import com.komy.flatrentalapi.dto.apartment.ApartmentUpdateRequest;
 import com.komy.flatrentalapi.service.ApartmentService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
