@@ -1,9 +1,6 @@
 package com.komy.flatrentalapi.controller;
 
-import com.komy.flatrentalapi.dto.auth.AuthResponse;
-import com.komy.flatrentalapi.dto.auth.LoginRequest;
-import com.komy.flatrentalapi.dto.auth.RegisterRequest;
-import com.komy.flatrentalapi.dto.auth.UserResponse;
+import com.komy.flatrentalapi.dto.auth.*;
 import com.komy.flatrentalapi.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -27,14 +24,23 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
         var user = authService.register(request);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(user.id())
-                .toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.id()).toUri();
         return ResponseEntity.created(location).body(user);
     }
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,13 +1,11 @@
 package com.komy.flatrentalapi.service;
 
-import com.komy.flatrentalapi.dto.auth.AuthResponse;
-import com.komy.flatrentalapi.dto.auth.LoginRequest;
-import com.komy.flatrentalapi.dto.auth.RegisterRequest;
-import com.komy.flatrentalapi.dto.auth.UserResponse;
+import com.komy.flatrentalapi.dto.auth.*;
 import com.komy.flatrentalapi.entity.User;
 import com.komy.flatrentalapi.entity.enums.Role;
 import com.komy.flatrentalapi.exception.EmailConflictException;
 import com.komy.flatrentalapi.exception.InvalidCredentialsException;
+import com.komy.flatrentalapi.repository.RefreshTokenRepository;
 import com.komy.flatrentalapi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,11 +15,15 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService, RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public UserResponse register(RegisterRequest request) {
@@ -47,7 +49,22 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        var token = jwtService.generateToken(user.getEmail());
-        return new AuthResponse(token);
+        var accessToken = jwtService.generateToken(user.getEmail());
+        var refreshToken = refreshTokenService.generateRefreshToken(user);
+        return new AuthResponse(accessToken, refreshToken.getToken());
+    }
+
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        var newRefreshToken = refreshTokenService.rotateRefreshToken(request.refreshToken());
+        var newAccessToken = jwtService.generateToken(newRefreshToken.getUser().getEmail());
+        return new AuthResponse(newAccessToken, newRefreshToken.getToken());
+    }
+
+    public void logout(RefreshTokenRequest request) {
+        var token = refreshTokenRepository.findByToken(request.refreshToken());
+        token.ifPresent(refreshToken -> {
+            refreshToken.setRevoked(true);
+            refreshTokenRepository.save(refreshToken);
+        });
     }
 }
