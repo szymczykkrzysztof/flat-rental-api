@@ -10,11 +10,4 @@ public interface ReservationMapper {
     @Mapping(source = "apartment.id", target = "apartmentId")
     @Mapping(source = "status", target = "status")
     ReservationResponse toResponse(Reservation reservation);
-
-//    @Mapping(source = "apartmentId", target = "apartment.id")
-//    @Mapping(source = "tenantId", target = "tenant.id")
-//    @Mapping(target = "id", ignore = true)
-//    @Mapping(target = "createdAt", ignore = true)
-//    @Mapping(target = "status", ignore = true)
-//    Reservation toEntity(ReservationCreateRequest request);
 }

@@ -49,10 +49,6 @@ public class User {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public @Email String getEmail() {
         return email;
     }
