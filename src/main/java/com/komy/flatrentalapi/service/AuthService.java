@@ -9,6 +9,7 @@ import com.komy.flatrentalapi.repository.RefreshTokenRepository;
 import com.komy.flatrentalapi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -26,6 +27,7 @@ public class AuthService {
         this.refreshTokenService = refreshTokenService;
     }
 
+    @Transactional
     public UserResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailConflictException("User already exists");
@@ -41,6 +43,7 @@ public class AuthService {
         return new UserResponse(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole());
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         var user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
@@ -54,12 +57,14 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken.getToken());
     }
 
+    @Transactional
     public AuthResponse refresh(RefreshTokenRequest request) {
         var newRefreshToken = refreshTokenService.rotateRefreshToken(request.refreshToken());
         var newAccessToken = jwtService.generateToken(newRefreshToken.getUser().getEmail());
         return new AuthResponse(newAccessToken, newRefreshToken.getToken());
     }
 
+    @Transactional
     public void logout(RefreshTokenRequest request) {
         var token = refreshTokenRepository.findByToken(request.refreshToken());
         token.ifPresent(refreshToken -> {

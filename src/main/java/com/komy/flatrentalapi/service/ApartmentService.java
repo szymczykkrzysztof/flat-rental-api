@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ApartmentService {
@@ -27,6 +28,7 @@ public class ApartmentService {
         this.currentUserProvider = currentUserProvider;
     }
 
+    @Transactional
     public ApartmentResponse create(ApartmentCreateRequest request) {
         User currentUser = currentUserProvider.getCurrentUser();
         if (currentUser.getRole() != Role.OWNER && currentUser.getRole() != Role.ADMIN) {
@@ -41,11 +43,13 @@ public class ApartmentService {
         return apartmentMapper.toResponse(saved);
     }
 
+    @Transactional(readOnly = true)
     public ApartmentResponse getById(Long id) {
         var apartmentEntity = apartmentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Apartment not found with id: " + id));
         return apartmentMapper.toResponse(apartmentEntity);
     }
 
+    @Transactional
     public ApartmentResponse update(Long id, ApartmentUpdateRequest request) {
         var apartmentEntity = apartmentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Apartment not found with id: " + id));
         requireOwnerOrAdmin(apartmentEntity.getOwner());
@@ -55,6 +59,7 @@ public class ApartmentService {
         return apartmentMapper.toResponse(updated);
     }
 
+    @Transactional
     public void delete(Long id) {
         var apartmentEntity = apartmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Apartment not found with id: " + id));
@@ -69,6 +74,7 @@ public class ApartmentService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Page<ApartmentResponse> getAll(Pageable pageable) {
         return apartmentRepository.findAll(pageable)
                 .map(apartmentMapper::toResponse);

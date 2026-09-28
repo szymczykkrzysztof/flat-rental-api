@@ -15,6 +15,7 @@ import com.komy.flatrentalapi.repository.ReservationRepository;
 import com.komy.flatrentalapi.security.CurrentUserProvider;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReservationService {
@@ -30,6 +31,7 @@ public class ReservationService {
         this.currentUserProvider = currentUserProvider;
     }
 
+    @Transactional
     public ReservationResponse create(ReservationCreateRequest request) {
         User currentUser = currentUserProvider.getCurrentUser();
         if (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.TENANT) {
