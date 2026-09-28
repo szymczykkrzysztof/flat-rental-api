@@ -4,13 +4,17 @@ import com.komy.flatrentalapi.dto.reservation.ReservationCreateRequest;
 import com.komy.flatrentalapi.dto.reservation.ReservationMapper;
 import com.komy.flatrentalapi.dto.reservation.ReservationResponse;
 import com.komy.flatrentalapi.entity.Reservation;
+import com.komy.flatrentalapi.entity.User;
 import com.komy.flatrentalapi.entity.enums.ReservationStatus;
+import com.komy.flatrentalapi.entity.enums.Role;
 import com.komy.flatrentalapi.exception.InvalidReservationDatesException;
 import com.komy.flatrentalapi.exception.ReservationConflictException;
 import com.komy.flatrentalapi.exception.ResourceNotFoundException;
 import com.komy.flatrentalapi.repository.ApartmentRepository;
 import com.komy.flatrentalapi.repository.ReservationRepository;
 import com.komy.flatrentalapi.repository.UserRepository;
+import com.komy.flatrentalapi.security.CurrentUserProvider;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,15 +23,22 @@ public class ReservationService {
     private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
+    private final CurrentUserProvider currentUserProvider;
 
-    public ReservationService(ApartmentRepository apartmentRepository, UserRepository userRepository, ReservationRepository reservationRepository, ReservationMapper reservationMapper) {
+    public ReservationService(ApartmentRepository apartmentRepository, UserRepository userRepository, ReservationRepository reservationRepository, ReservationMapper reservationMapper, CurrentUserProvider currentUserProvider) {
         this.apartmentRepository = apartmentRepository;
         this.userRepository = userRepository;
         this.reservationRepository = reservationRepository;
         this.reservationMapper = reservationMapper;
+        this.currentUserProvider = currentUserProvider;
     }
 
     public ReservationResponse create(ReservationCreateRequest request) {
+        User currentUser = currentUserProvider.getCurrentUser();
+        if (currentUser.getRole() != Role.ADMIN && !currentUser.getId().equals(request.tenantId())) {
+            throw new AccessDeniedException("Cannot create a reservation on behalf of another tenant");
+        }
+
         var apartment = apartmentRepository.findById(request.apartmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Apartment not found with id: " + request.apartmentId()));
         var tenant = userRepository.findById(request.tenantId())
