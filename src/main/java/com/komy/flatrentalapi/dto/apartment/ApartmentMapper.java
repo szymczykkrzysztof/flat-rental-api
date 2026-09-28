@@ -9,7 +9,7 @@ public interface ApartmentMapper {
     @Mapping(source = "status", target = "status")
     ApartmentResponse toResponse(Apartment apartment);
 
-    @Mapping(source = "ownerId", target = "owner.id")
+    @Mapping(target = "owner", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "status", ignore = true)

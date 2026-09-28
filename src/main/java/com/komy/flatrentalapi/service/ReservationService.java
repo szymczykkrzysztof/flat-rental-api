@@ -12,7 +12,6 @@ import com.komy.flatrentalapi.exception.ReservationConflictException;
 import com.komy.flatrentalapi.exception.ResourceNotFoundException;
 import com.komy.flatrentalapi.repository.ApartmentRepository;
 import com.komy.flatrentalapi.repository.ReservationRepository;
-import com.komy.flatrentalapi.repository.UserRepository;
 import com.komy.flatrentalapi.security.CurrentUserProvider;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -20,14 +19,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class ReservationService {
     private final ApartmentRepository apartmentRepository;
-    private final UserRepository userRepository;
     private final ReservationRepository reservationRepository;
     private final ReservationMapper reservationMapper;
     private final CurrentUserProvider currentUserProvider;
 
-    public ReservationService(ApartmentRepository apartmentRepository, UserRepository userRepository, ReservationRepository reservationRepository, ReservationMapper reservationMapper, CurrentUserProvider currentUserProvider) {
+    public ReservationService(ApartmentRepository apartmentRepository, ReservationRepository reservationRepository, ReservationMapper reservationMapper, CurrentUserProvider currentUserProvider) {
         this.apartmentRepository = apartmentRepository;
-        this.userRepository = userRepository;
         this.reservationRepository = reservationRepository;
         this.reservationMapper = reservationMapper;
         this.currentUserProvider = currentUserProvider;
@@ -35,18 +32,16 @@ public class ReservationService {
 
     public ReservationResponse create(ReservationCreateRequest request) {
         User currentUser = currentUserProvider.getCurrentUser();
-        if (currentUser.getRole() != Role.ADMIN && !currentUser.getId().equals(request.tenantId())) {
-            throw new AccessDeniedException("Cannot create a reservation on behalf of another tenant");
+        if (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.TENANT) {
+            throw new AccessDeniedException("Cannot create a reservation as owner");
         }
-
-        var apartment = apartmentRepository.findById(request.apartmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Apartment not found with id: " + request.apartmentId()));
-        var tenant = userRepository.findById(request.tenantId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.tenantId()));
 
         if (!request.startDate().isBefore(request.endDate())) {
             throw new InvalidReservationDatesException("Start date must be before end date");
         }
+
+        var apartment = apartmentRepository.findById(request.apartmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Apartment not found with id: " + request.apartmentId()));
 
         if (reservationRepository.existsOverlappingReservation(request.apartmentId(), request.startDate(), request.endDate())) {
             throw new ReservationConflictException("Overlapping reservation");
@@ -54,7 +49,7 @@ public class ReservationService {
 
         var reservation = new Reservation();
         reservation.setApartment(apartment);
-        reservation.setTenant(tenant);
+        reservation.setTenant(currentUser);
         reservation.setStartDate(request.startDate());
         reservation.setEndDate(request.endDate());
         reservation.setStatus(ReservationStatus.PENDING);
